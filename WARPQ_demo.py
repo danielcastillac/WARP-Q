@@ -66,6 +66,9 @@ from joblib import Parallel, delayed
 from scipy.stats import pearsonr
 from scipy.stats import spearmanr
 import matplotlib.pyplot as plt
+import argparse
+import os
+import csv
 
 ################################ WARP-Q #######################################
 def compute_WAPRQ(ref_path,test_path,sr=16000,n_mfcc=12,fmax=5000,patch_size=0.4,
@@ -186,9 +189,9 @@ def compute_WAPRQ(ref_path,test_path,sr=16000,n_mfcc=12,fmax=5000,patch_size=0.4
 ############### #  Main Demo Test Function ####################################
 ###############################################################################
 
-def main_test():
+def main_test(runSingleCore = True):
     
-    runSingleCore = True # Make it False if you want to run the code with multicores
+    #runSingleCore = True # Make it False if you want to run the code with multicores
     
     getPlot = False # Make it True if you want to plot the predicted scores vs MOS
                     # if True, MOS and Codec type should be provided in the csv file
@@ -228,6 +231,13 @@ def main_test():
     
     # Save the results
     All_Data.to_csv('Results.csv',index = None)                                        
+    
+    #CSV to stdout
+    print("Results:\n")
+    with open('Results.csv', 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            print(row)
 
     if getPlot:
         
@@ -246,4 +256,34 @@ def main_test():
         #plt.show()
     
 if __name__ == '__main__':
-    main_test()
+    # Lectura argumentos CLI
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--multicore", help = "Si correr con varios nucleos", action="store_true")
+    parser.add_argument("-i", "--input", help = "Carpeta archivos a comparar")
+    parser.add_argument("-r", "--ref", help = "Archivo de referencia para la comparación")
+    
+    args = parser.parse_args()
+    input_folder = args.input
+    input_ref = args.ref
+    """
+    input_folder = "E:\\Trascender_Global\\Voice Cloning - Delsec\\WARP-Q\\WARP-Q\\audio"
+    input_ref = "E:\\Trascender_Global\\Voice Cloning - Delsec\\audios test\\jose\\test.wav"
+    multic = False
+    """
+    # Audios de folder al csv respectivo
+    files_list = []
+    for root, dirs, files in os.walk(os.path.abspath(input_folder)):
+        for file in files:
+            files_list.append(os.path.join(root, file))
+    header = ["Ref_Wave", "Test_Wave", "MOS", "Codec"]
+    with open("audio_paths.csv", 'w', newline='') as f:
+        writer = csv.writer(f)
+
+        writer.writerow(header)
+        for file in files_list:
+            write_string = file + ',' + input_ref + ',,'
+            #write_string = input_ref + ',' + file + ',,'
+            writer.writerow(write_string.split(',')) #TODO si acaso intercambiar file e input_ref para cambiar quien es ref y quien test
+    
+    main_test(runSingleCore = not args.multicore)
+    #main_test(runSingleCore = not multic)
