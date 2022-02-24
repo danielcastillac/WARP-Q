@@ -1,5 +1,5 @@
 ## Uso
-- git clone 
+- git clone https://github.com/danielcastillac/WARP-Q.git
 - conda env create -f environment.yml
 - conda activate warpq
 - python WARPQ_demo.py -m -i "Carpeta de archivos a procesar" -r "Audio de referencia" (subfolders separados con \\) (-m para procesar con multiples nucleos)
